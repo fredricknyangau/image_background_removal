@@ -5,4 +5,4 @@ Pillow
 python-multipart
 pydantic
 pydantic-settings
-onxxruntime
+onnxruntime
