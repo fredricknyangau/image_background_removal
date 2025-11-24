@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { ImagePreview } from "@/components/ImagePreview";
 import { BatchQueue } from "@/components/BatchQueue/BatchQueue";
@@ -59,7 +59,6 @@ const Home = () => {
           originalBlob: nextItem.file,
           processedBlob: blob,
         });
-
       } catch (error) {
         console.error("Error processing image:", error);
         setQueue((prev) =>
@@ -135,7 +134,7 @@ const Home = () => {
 
   const handleReset = () => {
     // Clear everything
-    queue.forEach(item => {
+    queue.forEach((item) => {
       URL.revokeObjectURL(item.previewUrl);
       if (item.processedUrl) URL.revokeObjectURL(item.processedUrl);
     });
@@ -149,7 +148,8 @@ const Home = () => {
       id: item.id,
       file: item.originalBlob as File, // Cast back to File (Blob is compatible enough for display)
       previewUrl: item.previewUrl || URL.createObjectURL(item.originalBlob),
-      processedUrl: item.processedUrl || URL.createObjectURL(item.processedBlob),
+      processedUrl:
+        item.processedUrl || URL.createObjectURL(item.processedBlob),
       status: "completed",
     };
 
@@ -198,7 +198,10 @@ const Home = () => {
           <ImagePreview
             originalImage={activeItem.previewUrl}
             processedImage={activeItem.processedUrl}
-            isProcessing={activeItem.status === "processing" || activeItem.status === "queued"}
+            isProcessing={
+              activeItem.status === "processing" ||
+              activeItem.status === "queued"
+            }
             onDownload={() => handleDownload(activeItem.id)}
             onReset={handleReset}
           />
