@@ -42,6 +42,26 @@ async def health_check():
         }
     )
 
+
+@router.get("/ready")
+async def readiness_check():
+    """Readiness probe: returns 200 when the rembg session has been initialized.
+
+    This helps load balancers or the frontend detect whether the heavy model
+    is ready to serve requests. If the session hasn't been created yet we
+    return 503 so callers can retry or wait.
+    """
+    try:
+        from app.core.background_remover import get_rembg_session
+
+        # `get_rembg_session` is lru_cached; check cache size to infer readiness
+        info = get_rembg_session.cache_info()
+        if info.currsize > 0:
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"ready": True})
+        return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content={"ready": False})
+    except Exception:
+        return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content={"ready": False})
+
 @router.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
     """Remove background from uploaded image"""
