@@ -65,9 +65,22 @@ async def readiness_check():
 @router.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
     """Remove background from uploaded image"""
-    
+    # If the heavy model session hasn't been initialized yet, return 503
+    try:
+        from app.core.background_remover import get_rembg_session
+
+        if get_rembg_session.cache_info().currsize == 0:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={"detail": "Model not ready. Please retry shortly."}
+            )
+    except Exception:
+        # If readiness check fails for any reason, fall back to allowing
+        # processing to proceed so we don't block legitimate requests.
+        pass
+
     start_time = datetime.utcnow()
-    
+
     # Log the request
     logger.info(f"Request: {file.filename}, {file.content_type}")
     
