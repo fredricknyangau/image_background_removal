@@ -17,10 +17,6 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download the rembg model (u2net - 176MB)
-# This bakes it into the Docker image
-RUN python -c "from rembg import new_session; session = new_session('u2net'); print('Model downloaded successfully')"
-
 # Copy application code
 COPY . .
 
