@@ -62,6 +62,31 @@ async def readiness_check():
     except Exception:
         return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content={"ready": False})
 
+
+@router.post("/warm")
+async def warm_model():
+    """Trigger asynchronous warming of the rembg session.
+
+    This endpoint starts the cached session initialization in a background
+    thread and returns 202 Accepted immediately. Callers should poll
+    `/ready` to detect when warming is complete.
+    """
+    import asyncio
+
+    try:
+        from app.core.background_remover import get_rembg_session
+
+        # If already warmed, return 200
+        if get_rembg_session.cache_info().currsize > 0:
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"detail": "Already warmed"})
+
+        # Start warming in background thread and return immediately
+        asyncio.create_task(asyncio.to_thread(get_rembg_session))
+        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content={"detail": "Warming started"})
+    except Exception as e:
+        logger.error(f"Warm trigger failed: {str(e)}")
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"detail": "Failed to start warming"})
+
 @router.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
     """Remove background from uploaded image"""
