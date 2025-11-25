@@ -2,7 +2,6 @@
 Image processing service module
 """
 
-from rembg import remove
 from PIL import Image
 import io
 from fastapi import HTTPException, status
@@ -32,7 +31,10 @@ class ImageProcessor:
         """Remove background from image"""
         try:
             logger.info("Starting background removal")
-            
+            # Import rembg lazily to avoid slow startup/device discovery
+            # and to keep module import lightweight.
+            from rembg import remove
+
             # The AI magic happens here!
             output = remove(image_bytes)
             
